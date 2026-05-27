@@ -20,7 +20,7 @@ This widget automatically detects the user's location using IP-based geolocation
 
 # 📸 Preview
 
-![Weather Widget Preview](https://i.imgur.com/3QZQZ9N.png)
+[![weather-widget.png](https://i.postimg.cc/y6c6wRKm/weather-widget.png)](https://postimg.cc/V5sctddv)
 
 ---
 
@@ -51,5 +51,5 @@ This widget automatically detects the user's location using IP-based geolocation
 ```plaintext
 weather-widget/
 │
-├── index.html
+├── weather-widget.html
 ├── README.md
