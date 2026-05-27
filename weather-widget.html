@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Widget</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(to bottom, #c9d6ff, #e2e2e2);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .weather-widget {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 25px;
+            border-radius: 20px;
+            box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 1000px;
+            text-align: center;
+        }
+
+        h2 {
+            font-size: 26px;
+            color: #444;
+            margin-bottom: 20px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .weather-details {
+            margin-top: 20px;
+            display: none;
+        }
+
+        #city-name {
+            font-size: 22px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        #temperature {
+            font-size: 18px;
+            color: #ff6347;
+            font-weight: bold;
+        }
+
+        #weather-condition {
+            font-size: 16px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .weather-icon {
+            font-size: 60px;
+            margin-top: 15px;
+            margin-bottom: 10px;
+            color: #00aaff;
+        }
+
+        .loading {
+            font-size: 18px;
+            color: #666;
+            margin-top: 20px;
+        }
+
+        /* Animations for background effects */
+        .snow {
+            background: url('https://i.ibb.co/KxCXTVK/snowflake.png') repeat;
+            animation: snowfall 10s linear infinite;
+        }
+
+        .rain {
+            background: url('https://i.ibb.co/vjKjWwz/rain.png') repeat;
+            animation: rainfall 10s linear infinite;
+        }
+
+        .fog {
+            background: url('https://i.ibb.co/qgzGCmq/fog.png') repeat;
+            animation: fogfall 10s linear infinite;
+        }
+
+        @keyframes snowfall {
+            0% {background-position: 0px 0px;}
+            100% {background-position: 0px 100vh;}
+        }
+
+        @keyframes rainfall {
+            0% {background-position: 0px 0px;}
+            100% {background-position: 0px 100vh;}
+        }
+
+        @keyframes fogfall {
+            0% {background-position: 0px 0px;}
+            100% {background-position: 0px 100vh;}
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 20px;
+            padding: 10px;
+            font-size: 14px;
+            color: #666;
+        }
+    </style>
+<base target="_blank">
+</head>
+<body>
+    <div class="weather-widget" id="weather-widget">
+        <h2>Weather Widget</h2>
+        <div id="loading" class="loading">Detecting your location via IP...</div>
+        <div id="weather-details" class="weather-details">
+            <div class="weather-icon" id="weather-icon"></div>
+            <p id="city-name"></p>
+            <p id="temperature"></p>
+            <p id="weather-condition"></p>
+        </div>
+        <footer>
+            <p>&copy; 2026 Weather Widget by Rashid Ahmad. All rights reserved.</p>
+        </footer>
+    </div>
+
+    <script>
+        const weatherApiKey = 'b56d79dc3aa5418699182727262705';
+        const weatherApiUrl = 'https://api.weatherapi.com/v1/current.json?key=';
+
+        const cityName = document.getElementById('city-name');
+        const temperature = document.getElementById('temperature');
+        const weatherCondition = document.getElementById('weather-condition');
+        const weatherDetails = document.getElementById('weather-details');
+        const weatherWidget = document.getElementById('weather-widget');
+        const weatherIcon = document.getElementById('weather-icon');
+        const loading = document.getElementById('loading');
+
+        async function fetchWeatherByCity(city) {
+            try {
+                const response = await fetch(`${weatherApiUrl}${weatherApiKey}&q=${encodeURIComponent(city)}`);
+                const data = await response.json();
+
+                cityName.textContent = data.location.name;
+                temperature.textContent = `Temperature: ${data.current.temp_c}°C`;
+                weatherCondition.textContent = `Condition: ${data.current.condition.text}`;
+
+                loading.style.display = 'none';
+                weatherDetails.style.display = 'block';
+
+                const condition = data.current.condition.text.toLowerCase();
+                if (condition.includes('rain')) {
+                    weatherIcon.textContent = '🌧️';
+                    weatherWidget.classList.add('rain');
+                } else if (condition.includes('snow')) {
+                    weatherIcon.textContent = '❄️';
+                    weatherWidget.classList.add('snow');
+                } else if (condition.includes('fog')) {
+                    weatherIcon.textContent = '🌫️';
+                    weatherWidget.classList.add('fog');
+                } else if (condition.includes('clear') || condition.includes('sunny')) {
+                    weatherIcon.textContent = '☀️';
+                } else {
+                    weatherIcon.textContent = '☁️';
+                }
+            } catch (error) {
+                loading.textContent = 'Unable to fetch weather data. Please try again later.';
+            }
+        }
+
+        async function detectLocationByIP() {
+            try {
+                // Use ip-api.com (free, no key needed) to get city from IP
+                const ipResponse = await fetch('http://ip-api.com/json/?fields=city,country,lat,lon');
+                const ipData = await ipResponse.json();
+
+                if (ipData.city) {
+                    loading.textContent = `Detected: ${ipData.city}, ${ipData.country}`;
+                    await fetchWeatherByCity(ipData.city);
+                } else {
+                    throw new Error('City not found from IP');
+                }
+            } catch (error) {
+                // Fallback: try another free IP geolocation service
+                try {
+                    const fallbackResponse = await fetch('https://api.country.is/?fields=city');
+                    const fallbackData = await fallbackResponse.json();
+                    if (fallbackData.city) {
+                        loading.textContent = `Detected: ${fallbackData.city}`;
+                        await fetchWeatherByCity(fallbackData.city);
+                    } else {
+                        throw new Error('City not found from fallback IP service');
+                    }
+                } catch (fallbackError) {
+                    loading.textContent = 'Could not detect location via IP. Showing default location (London).';
+                    await fetchWeatherByCity('London');
+                }
+            }
+        }
+
+        // Start IP-based location detection on page load
+        detectLocationByIP();
+    </script>
+</body>
+</html>
